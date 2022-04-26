@@ -15,5 +15,7 @@ This project aims to gather data from an imu sensor (Sparkfun 9dof Stick), an ai
 ## References
 
 * GPRMC Decoding by David Watts: https://www.youtube.com/watch?v=bgOZLgaLa0g&t=485s
+* I2C Bus Explanation: https://github.com/SensorsIot/I2C_1-Video
+* Dual Core Programming Example: https://github.com/RalphBacon/ESP32-Variable-Passing-Using-Queues-Global-Vars
 * Sparkfun 9dof Stick repository: https://github.com/sparkfun/SparkFun_LSM9DS1_Arduino_Library
 * DFRobot BME680 repository: https://github.com/DFRobot/DFRobot_BME680
