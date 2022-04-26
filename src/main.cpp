@@ -3,6 +3,9 @@
 #include "DFRobot_BME680_I2C.h"
 #include <SparkFunLSM9DS1.h>
 
+TaskHandle_t Task0;
+TaskHandle_t Task1;
+
 DFRobot_BME680_I2C bme(0x77); // 0x77 I2C address
 LSM9DS1 imu;
 #define PRINT_CALCULATED
@@ -38,6 +41,91 @@ void printAttitude(float ax, float ay, float az, float mx, float my, float mz);
 String ConvertLat();
 String ConvertLng();
 
+void loop0(void * parameter)
+{
+    for(;;)
+    {
+        if (imu.gyroAvailable())
+        {
+            imu.readGyro();
+        }
+        if (imu.accelAvailable())
+        {
+            imu.readAccel();
+        }
+        if (imu.magAvailable())
+        {
+            imu.readMag();
+        }
+        if ((lastPrint + PRINT_SPEED) < millis())
+        {
+            printGyro();  // Print "G: gx, gy, gz"
+            printAccel(); // Print "A: ax, ay, az"
+            printMag();   // Print "M: mx, my, mz"
+            printAttitude(imu.ax, imu.ay, imu.az,
+                            -imu.my, -imu.mx, imu.mz);
+            Serial.println();
+            lastPrint = millis(); // Update lastPrint time
+        }
+
+        delay(1000);
+
+        Wire.beginTransmission(0x77);
+        bme.startConvert();
+        delay(1000);
+        bme.update();
+        Serial.print("temperature(C) :");
+        Serial.println(bme.readTemperature() / 100, 2);
+        Serial.print("humidity(%rh) :");
+        Serial.println(bme.readHumidity() / 1000, 2);
+        Serial.print("gas resistance(ohm) :");
+        Serial.println(bme.readGasResistance());
+        Serial.println();
+    }
+}
+ 
+void loop1(void * parameter)
+{
+    for(;;)
+    {
+        Serial.flush();
+        while (Serial2.available() > 0)
+        {
+            char(Serial2.read());
+        }
+        if (char(Serial2.find("$GPRMC,")))
+        {
+            String tempMsg = String(Serial2.readStringUntil('\n'));
+            for (int i = 0; i < tempMsg.length(); i++)
+            {
+                if (tempMsg.substring(i, i + 1) == ",")
+                {
+                    nmea[pos] = tempMsg.substring(stringplace, i);
+                    stringplace = i + 1;
+                    pos++;
+                }
+                if (i == tempMsg.length() - 1)
+                {
+                    nmea[pos] = tempMsg.substring(stringplace, i);
+                }
+            }
+            updates++;
+            nmea[2] = ConvertLat();
+            nmea[4] = ConvertLng();
+            Serial.println(labels[1] + nmea[1]);
+            Serial.println("Latitude, Longtitude: " + nmea[2] + "," + " " + nmea[4]);
+            Serial.println();
+        }
+        else
+        {
+            failedUpdates++;
+        }
+        stringplace = 0;
+        pos = 0;
+        delay(1000);
+    }
+}
+
 void setup()
 { 
     Serial.begin(115200); // this creates the Serial Monitor
@@ -72,82 +160,29 @@ void setup()
         while (1)
             ;
     }
+
+    xTaskCreatePinnedToCore(
+        loop0, /* Function to implement the task */
+        "Task0", /* Name of the task */
+        1024, /* Stack size in words */
+        NULL, /* Task input parameter */
+        0, /* Priority of the task */
+        &Task0, /* Task handle. */
+        0); /* Core where the task should run */
+
+    xTaskCreatePinnedToCore(
+        loop1, /* Function to implement the task */
+        "Task1", /* Name of the task */
+        1024, /* Stack size in words */
+        NULL, /* Task input parameter */
+        0, /* Priority of the task */
+        &Task1, /* Task handle. */
+        1); /* Core where the task should run */
 }
 
 void loop()
 {
-    if (imu.gyroAvailable())
-    {
-        imu.readGyro();
-    }
-    if (imu.accelAvailable())
-    {
-        imu.readAccel();
-    }
-    if (imu.magAvailable())
-    {
-        imu.readMag();
-    }
-    if ((lastPrint + PRINT_SPEED) < millis())
-    {
-        printGyro();  // Print "G: gx, gy, gz"
-        printAccel(); // Print "A: ax, ay, az"
-        printMag();   // Print "M: mx, my, mz"
-        printAttitude(imu.ax, imu.ay, imu.az,
-                      -imu.my, -imu.mx, imu.mz);
-        Serial.println();
-        lastPrint = millis(); // Update lastPrint time
-    }
-
-    delay(1000);
-
-    Wire.beginTransmission(0x77);
-    bme.startConvert();
-    delay(1000);
-    bme.update();
-    Serial.print("temperature(C) :");
-    Serial.println(bme.readTemperature() / 100, 2);
-    Serial.print("humidity(%rh) :");
-    Serial.println(bme.readHumidity() / 1000, 2);
-    Serial.print("gas resistance(ohm) :");
-    Serial.println(bme.readGasResistance());
-    Serial.println();
-
-    Serial.flush();
-    while (Serial2.available() > 0)
-    {
-        char(Serial2.read());
-    }
-    if (char(Serial2.find("$GPRMC,")))
-    {
-        String tempMsg = String(Serial2.readStringUntil('\n'));
-        for (int i = 0; i < tempMsg.length(); i++)
-        {
-            if (tempMsg.substring(i, i + 1) == ",")
-            {
-                nmea[pos] = tempMsg.substring(stringplace, i);
-                stringplace = i + 1;
-                pos++;
-            }
-            if (i == tempMsg.length() - 1)
-            {
-                nmea[pos] = tempMsg.substring(stringplace, i);
-            }
-        }
-        updates++;
-        nmea[2] = ConvertLat();
-        nmea[4] = ConvertLng();
-        Serial.println(labels[1] + nmea[1]);
-        Serial.println("Latitude, Longtitude: " + nmea[2] + "," + " " + nmea[4]);
-        Serial.println();
-    }
-    else
-    {
-        failedUpdates++;
-    }
-    stringplace = 0;
-    pos = 0;
-    delay(1000);
+    delay(1);
 }
 
 void printGyro()
