@@ -12,6 +12,12 @@ Most of the tutorials online contain information about Arduino, while there are 
 
 This project aims to gather data from an imu sensor (Sparkfun 9dof Stick), an air quality sensor (DFRobot BME680) & a gps module (U-Blox Neo6m) and to send them to a database (Google Firebase). Imu and air quality sensors are communicating with the ESP32 via I2C protocol, whereas gps module sends bits with UART protocol. I used NodeMCU 32-S as development card. The following image shows the wiring.
 
+## Most Common Problems I've Faced When I'm Working on This Project
+
+### Using Software Serial Instead of Hardware Serial
+
+### Not Using Dual Core of ESP32
+
 ## References
 
 * GPRMC Decoding by David Watts: https://www.youtube.com/watch?v=bgOZLgaLa0g&t=485s
