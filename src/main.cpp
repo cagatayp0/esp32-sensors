@@ -41,6 +41,13 @@ void printAttitude(float ax, float ay, float az, float mx, float my, float mz);
 String ConvertLat();
 String ConvertLng();
 
+void goToDeepSleep()
+{
+    Serial.println("Going to Sleep");
+    esp_sleep_enable_timer_wakeup(1 * 60 * 1000000); //sleep 1 minute
+    esp_deep_sleep_start();
+}
+
 void loop0(void * parameter)
 {
     for(;;)
@@ -178,6 +185,8 @@ void setup()
         0, /* Priority of the task */
         &Task1, /* Task handle. */
         1); /* Core where the task should run */
+
+    goToDeepSleep();
 }
 
 void loop()
