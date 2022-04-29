@@ -41,12 +41,12 @@ void printAttitude(float ax, float ay, float az, float mx, float my, float mz);
 String ConvertLat();
 String ConvertLng();
 
-void goToDeepSleep()
-{
-    Serial.println("Going to Sleep");
-    esp_sleep_enable_timer_wakeup(1 * 60 * 1000000); //sleep 1 minute
-    esp_deep_sleep_start();
-}
+// void goToDeepSleep()
+// {
+//     Serial.println("Going to Sleep");
+//     esp_sleep_enable_timer_wakeup(1 * 60 * 1000000); //sleep 1 minute
+//     esp_deep_sleep_start();
+// }
 
 void loop0(void * parameter)
 {
@@ -166,27 +166,31 @@ void setup()
                        "if the board jumpers are.");
         while (1)
             ;
+    } 
+    else 
+    {
+        Serial.println("imu ready");
     }
 
     xTaskCreatePinnedToCore(
         loop0, /* Function to implement the task */
         "Task0", /* Name of the task */
-        1024, /* Stack size in words */
+        8192, /* Stack size in words */
         NULL, /* Task input parameter */
-        0, /* Priority of the task */
+        1, /* Priority of the task */
         &Task0, /* Task handle. */
         0); /* Core where the task should run */
 
     xTaskCreatePinnedToCore(
         loop1, /* Function to implement the task */
         "Task1", /* Name of the task */
-        1024, /* Stack size in words */
+        8192, /* Stack size in words */
         NULL, /* Task input parameter */
-        0, /* Priority of the task */
+        1, /* Priority of the task */
         &Task1, /* Task handle. */
         1); /* Core where the task should run */
 
-    goToDeepSleep();
+    // goToDeepSleep();
 }
 
 void loop()
