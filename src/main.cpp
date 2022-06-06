@@ -50,8 +50,10 @@ String ConvertLng();
 
 void loop0(void * parameter)
 {
+    Serial.println("Task 0 running on core 0\n");
     for(;;)
     {
+        Serial.println("Task 0 loop");
         if (imu.gyroAvailable())
         {
             imu.readGyro();
@@ -74,12 +76,8 @@ void loop0(void * parameter)
             Serial.println();
             lastPrint = millis(); // Update lastPrint time
         }
-
         delay(1000);
-
-        Wire.beginTransmission(0x77);
         bme.startConvert();
-        delay(1000);
         bme.update();
         Serial.print("temperature(C) :");
         Serial.println(bme.readTemperature() / 100, 2);
@@ -93,9 +91,10 @@ void loop0(void * parameter)
  
 void loop1(void * parameter)
 {
+    Serial.println("Task 1 running on core 1\n");
     for(;;)
     {
-        Serial.flush();
+        Serial.println("Task 1 loop");
         while (Serial2.available() > 0)
         {
             char(Serial2.read());
@@ -126,6 +125,7 @@ void loop1(void * parameter)
         else
         {
             failedUpdates++;
+            Serial.println("Serial 2 gprmc not avalible");
         }
         stringplace = 0;
         pos = 0;
@@ -135,11 +135,9 @@ void loop1(void * parameter)
 
 void setup()
 { 
-    Serial.begin(115200); // this creates the Serial Monitor
+    Serial.begin(9600); // this creates the Serial Monitor
     Wire.begin();       // this creates a Wire object
     Serial2.begin(9600, SERIAL_8N2, RXD2, TXD2);
-
-
     uint8_t rslt = 1;
     while (!Serial)
         ;
@@ -175,7 +173,7 @@ void setup()
     xTaskCreatePinnedToCore(
         loop0, /* Function to implement the task */
         "Task0", /* Name of the task */
-        8192, /* Stack size in words */
+        2048 , /* Stack size in words */
         NULL, /* Task input parameter */
         1, /* Priority of the task */
         &Task0, /* Task handle. */
@@ -184,7 +182,7 @@ void setup()
     xTaskCreatePinnedToCore(
         loop1, /* Function to implement the task */
         "Task1", /* Name of the task */
-        8192, /* Stack size in words */
+        2048 , /* Stack size in words */
         NULL, /* Task input parameter */
         1, /* Priority of the task */
         &Task1, /* Task handle. */
@@ -195,7 +193,6 @@ void setup()
 
 void loop()
 {
-    delay(1);
 }
 
 void printGyro()
