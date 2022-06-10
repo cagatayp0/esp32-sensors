@@ -44,7 +44,7 @@ String ConvertLng();
 // void goToDeepSleep()
 // {
 //     Serial.println("Going to Sleep");
-//     esp_sleep_enable_timer_wakeup(1 * 60 * 1000000); //sleep 1 minute
+//     esp_sleep_enable_timer_wakeup(1 * 30 * 1000000); //sleep 30 seconds
 //     esp_deep_sleep_start();
 // }
 
@@ -53,7 +53,7 @@ void loop0(void * parameter)
     Serial.println("Task 0 running on core 0\n");
     for(;;)
     {
-        Serial.println("Task 0 loop");
+        Serial.println("Starting task 0 loop");
         if (imu.gyroAvailable())
         {
             imu.readGyro();
@@ -86,6 +86,7 @@ void loop0(void * parameter)
         Serial.print("gas resistance(ohm) :");
         Serial.println(bme.readGasResistance());
         Serial.println();
+        Serial.println("Ending task 0 loop");
     }
 }
  
@@ -94,7 +95,7 @@ void loop1(void * parameter)
     Serial.println("Task 1 running on core 1\n");
     for(;;)
     {
-        Serial.println("Task 1 loop");
+        Serial.println("Starting task 1 loop");
         while (Serial2.available() > 0)
         {
             char(Serial2.read());
@@ -129,7 +130,9 @@ void loop1(void * parameter)
         }
         stringplace = 0;
         pos = 0;
-        delay(1000);
+        Serial.println("Ending task 1 loop");
+        // goToDeepSleep();
+        // Serial.println("Waking up!");
     }
 }
 
@@ -187,8 +190,6 @@ void setup()
         1, /* Priority of the task */
         &Task1, /* Task handle. */
         1); /* Core where the task should run */
-
-    // goToDeepSleep();
 }
 
 void loop()
