@@ -41,12 +41,12 @@ void printAttitude(float ax, float ay, float az, float mx, float my, float mz);
 String ConvertLat();
 String ConvertLng();
 
-// void goToDeepSleep()
-// {
-//     Serial.println("Going to Sleep");
-//     esp_sleep_enable_timer_wakeup(1 * 30 * 1000000); //sleep 30 seconds
-//     esp_deep_sleep_start();
-// }
+void goToDeepSleep()
+{
+    Serial.println("Going to Sleep");
+    esp_sleep_enable_timer_wakeup(1 * 10 * 1000000); //sleep 10 seconds
+    esp_deep_sleep_start();
+}
 
 void loop0(void * parameter)
 {
@@ -131,8 +131,11 @@ void loop1(void * parameter)
         stringplace = 0;
         pos = 0;
         Serial.println("Ending task 1 loop");
-        // goToDeepSleep();
-        // Serial.println("Waking up!");
+        if (nmea[1] == "A")
+        {
+            goToDeepSleep();
+            Serial.println("Waking up!");
+        }
     }
 }
 
